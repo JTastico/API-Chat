@@ -1,33 +1,35 @@
 package com.example.chat.service;
 
-
+import com.example.chat.config.OpenAiConfig;
 import com.example.chat.model.ChatGptRequest;
 import com.example.chat.model.ChatGptResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 
 @Service
 public class ChatGptService {
 
-    @Value("${openai.api.key}")
-    private String apiKey;
+    private final OpenAiConfig openAiConfig;
 
-    @Value("${openai.api.url}")
-    private String apiUrl;
+    // Inyectamos OpenAiConfig en el constructor
+    public ChatGptService(OpenAiConfig openAiConfig) {
+        this.openAiConfig = openAiConfig;
+    }
 
-    public ChatGptResponse getResponseFromChatGpt(@RequestBody ChatGptRequest request) {
+    public ChatGptResponse getResponseFromChatGpt(ChatGptRequest request) {
         RestTemplate restTemplate = new RestTemplate();
-        
+
+        // Configuración de encabezados
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + apiKey);
+        headers.set("Authorization", "Bearer " + openAiConfig.getKey());
 
+        // Crear entidad HTTP con el cuerpo de la solicitud y los encabezados
         HttpEntity<ChatGptRequest> entity = new HttpEntity<>(request, headers);
-        
-        ResponseEntity<ChatGptResponse> response = restTemplate.postForEntity(apiUrl, entity, ChatGptResponse.class);
+
+        // Llamada a la API de OpenAI
+        ResponseEntity<ChatGptResponse> response = restTemplate.postForEntity(openAiConfig.getUrl(), entity, ChatGptResponse.class);
         return response.getBody();
     }
 }
